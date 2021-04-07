@@ -112,7 +112,7 @@ class MDP(object):
 
 		# Run iterative strategy
 		for j in range(0,self.maxIt):
-			Vnext = ... # Hint: here you need to use only Vn[-1], P and C.
+			Vnext = np.array([C[s] + np.dot(P[s], Vn[-1]) for s in range(self.states)])
 			Vn.append( Vnext )
 
 			# Check if algorithm has converged
