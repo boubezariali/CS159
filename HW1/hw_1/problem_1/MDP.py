@@ -131,15 +131,15 @@ class MDP(object):
 		sThreshold = 2*iThreshold
 
 
-		# You need to combine the matrices self.P[0] and self.P[1] which are assocaied 
-		# with the move forward acton and parking action, respectively 
+		# You need to combine the matrices self.P[0] and self.P[1] which are assocaied
+		# with the move forward acton and parking action, respectively
 		# (hint: use the variable sThreshold and the command vstack)
-		Ppi = ...
+		Ppi = np.vstack((self.P[0][:sThreshold], self.P[1][sThreshold:]))
 
-		# You need to combine the vectors self.C[0] and self.C[1] which are assocaied 
+		# You need to combine the vectors self.C[0] and self.C[1] which are assocaied
 		# with the move forward acton and parking action, respectively (hint: use the variable sThreshold)
 		# (hint: use the variable sThreshold and the command hstack)
-		Cpi = ...
+		Cpi = np.hstack(( self.C[0][:sThreshold], self.C[1][sThreshold:]))
 
 		if self.printLevel >= 3:
 			print("Ppi: ")

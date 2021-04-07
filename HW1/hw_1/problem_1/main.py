@@ -15,7 +15,7 @@ mdp = MDP(N, p, Cg, printLevel)
 mdp.buildTransitionMatrices()
 
 # # Compute the matrices for the closed-loop system given the threshold of the optimal policy = N
-# Ppi, Cpi = mdp.computePolicy(iThreshold = 3)
+Ppi, Cpi = mdp.computePolicy(iThreshold = 3)
 
 # # Evaluate the policy for Ppi and Cpi
 # mdp.policyEvaluation(Ppi, Cpi)
