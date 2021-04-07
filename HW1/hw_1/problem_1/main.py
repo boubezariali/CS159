@@ -8,7 +8,7 @@ p  = 0.05 # Probability of transitioning to a free parking spot
 Cg = 4  # Cost of parking to the garage
 
 # Initialize mdp object
-printLevel = 0
+printLevel = 2
 mdp = MDP(N, p, Cg, printLevel)
 
 # Build transition probability

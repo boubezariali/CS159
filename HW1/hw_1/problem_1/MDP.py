@@ -166,57 +166,56 @@ class MDP(object):
 		# Move Forward
 		for i  in range(0, self.N):
 			i_f = 2*i  # i-th parking spot free
-			i_o = 2*i+1 # i-th parking spot occupied 		
-			s_n = 2*(i+1) # (i+1)-th parking spot free for (i+1) < N and garage for (i+1) = N 
+			i_o = 2*i+1 # i-th parking spot occupied
+			s_n = 2*(i+1) # (i+1)-th parking spot free for (i+1) < N and garage for (i+1) = N
 
 			if i == self.N-1:
-				P_move_forward[i_f, s_n] = ... 
-				P_move_forward[i_o, s_n] = ...
+				P_move_forward[i_f, s_n] = 1
+				P_move_forward[i_o, s_n] = 1
 			else:
-				P_move_forward[i_o, s_n+0] = ... 
-				P_move_forward[i_o, s_n+1] = ...
-				P_move_forward[i_f, s_n+0] = ... 
-				P_move_forward[i_f, s_n+1] = ...
+				P_move_forward[i_o, s_n+0] = self.p
+				P_move_forward[i_o, s_n+1] = 1 - self.p
+				P_move_forward[i_f, s_n+0] = self.p
+				P_move_forward[i_f, s_n+1] = 1 - self.p
 
 		# Parking
 		for i  in range(0, self.N):
 			i_f = 2*i  # i-th parking spot free
-			i_o = 2*i+1 # i-th parking spot occupied 		
+			i_o = 2*i+1 # i-th parking spot occupied
 			s_n = 2*(i+1) # (i+1)-th parking spot free
 
 			if i == self.N-1:
-				P_park[i_f, -1] = ...
-				P_park[i_o, s_n] = ... 
+				P_park[i_f, -1] = 1
+				P_park[i_o, s_n] = 1
 			else:
-				P_park[i_f, -1] = ...
-				P_park[i_o, s_n+0] = ... 
-				P_park[i_o, s_n+1] = ...
-			
+				P_park[i_f, -1] = 1
+				P_park[i_o, s_n+0] = self.p
+				P_park[i_o, s_n+1] = 1 - self.p
+
 		# Compute cost vector associated with each action
 		C_move_forward = np.zeros(2*self.N+2);
 		C_park         = np.zeros(2*self.N+2);
-	
-		# Cost of being at the Garage		
+
+		# Cost of being at the Garage
 		C_move_forward[-2] = self.Cg
 		C_park[-2]         = self.Cg
 
 		for i in range(0, self.N):
 			i_f = 2*i # i-th parking spot free
-			C_park[i_f] = ...
-		
+			C_park[i_f] = self.N - i
+
 		if self.printLevel >= 2:
 			print("P_move_forward:")
 			print(P_move_forward)
-			
+
 			print("P_park:")
 			print(P_park)
 
 			print("C_move_forward:")
 			print(C_move_forward)
-			
+
 			print("C_park:")
 			print(C_park)
 
 		self.C = [C_move_forward, C_park]
 		self.P = [P_move_forward, P_park]
-
