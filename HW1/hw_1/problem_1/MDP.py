@@ -49,9 +49,9 @@ class MDP(object):
 		# Policy Iteration Loop
 		for j in range(0, self.maxIt):
 			# Hint: use the functions that you have already developed
-			[Ppi, Cpi] = ... # First compute a policy for the threshild value iThreshold
-			Vnext      = ... # Policy evaluation step
-			iThreshold = ... # Policy improvement step;
+			[Ppi, Cpi] = self.computePolicy(iThreshold) # First compute a policy for the threshild value iThreshold
+			Vnext      = self.policyEvaluation(Ppi, Cpi) # Policy evaluation step
+			iThreshold = self.policyImprovement(Vnext) # Policy improvement step;
 			Vn.append(Vnext)
 
 			# Check if the algorithm has converged
@@ -69,8 +69,9 @@ class MDP(object):
 		# Run Bellman recursion for all states
 		# Notice that self.states = 2N+2 = total number of states
 		# Hint: Here you need to run a for loop to update the vectors Vn \in \mathbb{R}^{self.states} and An \in \mathbb{R}^{self.states}
-		...	
-		
+		for s in range(self.states):
+			Vn[s], An[s] = self.bellmanRecursion(s, V)
+
 
 		iThreshold = self.computeIndex(An)
 		return iThreshold
