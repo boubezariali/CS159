@@ -10,6 +10,7 @@ from numpy import hstack, inf, ones
 from scipy.sparse import vstack
 from osqp import OSQP
 from dataclasses import dataclass, field
+import ftocp
 
 
 class FTOCP(object):
@@ -41,9 +42,9 @@ class FTOCP(object):
 		self.R  = R
 
 		print("Initializing FTOCP")
-		ftocp.buildCost()
-		ftocp.buildIneqConstr()
-		ftocp.buildEqConstr()
+		self.buildCost()
+		self.buildIneqConstr()
+		self.buildEqConstr()
 		print("Done initializing FTOCP")
 
 		self.time = 0
@@ -85,18 +86,24 @@ class FTOCP(object):
 	def buildIneqConstr(self):
 		# Hint 1: consider building submatrices and then stack them together
 		# Hint 2: most likely you will need to use auxiliary variables 
-		...
-		G_in = ...
+		G_in = linalg.block_diag(*([self.Fx]*(self.N-1) + [self.Ff] + [self.Fu]*self.N))
+		G_in = np.vstack([np.zeros((self.Fx.shape[0], G_in.shape[1])), G_in])
+		# G_in = np.roll(G_in, self.Fx.shape[0], axis=0)
+		# G_in[:self.Fx.shape[0], :] = 0
 
-		...
-		E_in = ...
-		
-		...
-		w_in = ...
+		nbx = self.bx.shape[0]
+		nbf = self.bf.shape[0]
+		nbu = self.bu.shape[0]
+		zeros_dim = (nbx * (self.N) + nbf + nbu * self.N) - self.Fx.T.shape[1]
+		E_in = np.hstack([-self.Fx.T, np.zeros((self.Fx.T.shape[0], zeros_dim))])
+		E_in = E_in.T
+
+		w_in = np.hstack([self.bx.T]*(self.N) + [self.bf.T] + [self.bu.T]*self.N).T
 
 		if self.printLevel >= 2:
 			print("G_in: ")
 			print(G_in)
+			print("G_in shape", G_in.shape)
 			print("E_in: ")
 			print(E_in)
 			print("w_in: ", w_in)			
@@ -107,8 +114,8 @@ class FTOCP(object):
 
 	def buildCost(self):
 		# Hint: you could use the function "linalg.block_diag"
-		barQ = ...
-		barR = ...
+		barQ = linalg.block_diag(*([self.Q] * (self.N-1) + [self.Qf]))
+		barR = linalg.block_diag(*([self.R] * self.N))
 
 		H = linalg.block_diag(barQ, barR)
 		q = np.zeros(H.shape[0]) 
@@ -124,15 +131,22 @@ class FTOCP(object):
 	def buildEqConstr(self):
 		# Hint 1: consider building submatrices and then stack them together
 		# Hint 2: most likely you will need to use auxiliary variables 
-		...
-		G_eq = ...
 		
-		...
-		E_eq = ...
+		Id = linalg.block_diag(*([np.identity(self.A.shape[0])] * self.N))
+		A_block = linalg.block_diag(*[-self.A] * self.N)
+		A_block = np.roll(A_block, self.A.shape[0], axis=0)  # Shift downwards
+		A_block[:self.A.shape[0],:] = 0  # Clear rolled over at the top
+		left = Id + A_block
+		right = linalg.block_diag(*([-self.B]*self.N))
+		assert(left.shape[0] == right.shape[0]), (left.shape, right.shape)
+		G_eq = np.hstack([left, right])
+		
+		E_eq = np.hstack([self.A.T] + [np.zeros(self.A.T.shape)] * (self.N-1)).T
 
 		if self.printLevel >= 2:
 			print("G_eq: ")
 			print(G_eq)
+			print("G_eq shape", G_eq.shape)
 			print("E_eq: ")
 			print(E_eq)
 
