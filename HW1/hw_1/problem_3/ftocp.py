@@ -58,10 +58,10 @@ class FTOCP(object):
 
 		# Solve QP
 		startTimer = datetime.datetime.now()
-		self.osqp_solve_qp(self.H, self.q, self.G_in, np.add(self.w_in, np.dot(self.E_in,x0)), self.G_eq, ... )
+		self.osqp_solve_qp(self.H, self.q, self.G_in, np.add(self.w_in, np.dot(self.E_in,x0)), self.G_eq, np.add(np.dot(self.E_eq,x0),self.C_eq))
 		endTimer = datetime.datetime.now(); deltaTimer = endTimer - startTimer
 		self.solverTime = deltaTimer
-		
+
 		# Unpack Solution
 		self.unpackSolution(x0)
 
@@ -84,38 +84,59 @@ class FTOCP(object):
 		if self.printLevel >= 1: print("Solver Time: ", self.solverTime.total_seconds(), " seconds.")
 
 	def buildIneqConstr(self):
-		# Hint: Are the matrices G_in, E_in and w_in constructed using  A and B? 
-		...
+		# Hint: Are the matrices G_in, E_in and w_in constructed using A and B?
+		G_in = linalg.block_diag(*([self.Fx]*(self.N-1) + [self.Ff] + [self.Fu]*self.N))
+		G_in = np.vstack([np.zeros((self.Fx.shape[0], G_in.shape[1])), G_in])
+
+		nbx = self.bx.shape[0]
+		nbf = self.bf.shape[0]
+		nbu = self.bu.shape[0]
+		zeros_dim = (nbx * (self.N) + nbf + nbu * self.N) - self.Fx.T.shape[1]
+		E_in = np.hstack([-self.Fx.T, np.zeros((self.Fx.T.shape[0], zeros_dim))])
+		E_in = E_in.T
+
+		w_in = np.hstack([self.bx.T]*(self.N) + [self.bf.T] + [self.bu.T]*self.N).T
 
 		if self.printLevel >= 2:
 			print("G_in: ")
 			print(G_in)
 			print("E_in: ")
 			print(E_in)
-			print("w_in: ", w_in)			
+			print("w_in: ", w_in)
 
 		self.G_in = sparse.csc_matrix(G_in)
 		self.E_in = E_in
 		self.w_in = w_in.T
 
-
 	def buildCost(self):
-		# Hint: Are the matrices H and q constructed using  A and B? 
-		...
+		# Hint: Are the matrices H and q constructed using A and B?
+		barQ = linalg.block_diag(*([self.Q] * (self.N-1) + [self.Qf]))
+		barR = linalg.block_diag(*([self.R] * self.N))
 
 		H = linalg.block_diag(barQ, barR)
-		q = np.zeros(H.shape[0]) 
+		q = np.zeros(H.shape[0])
 
 		if self.printLevel >= 2:
 			print("H: ")
 			print(H)
 			print("q: ", q)
-		
+
 		self.q = q
 		self.H = sparse.csc_matrix(2 * H)  #  Need to multiply by two because CVX considers 1/2 in front of quadratic cost
 
 	def buildEqConstr(self):
-		...
+		Id = linalg.block_diag(*([np.identity(self.A[0].shape[0])] * self.N))
+		A_block = linalg.block_diag(*self.A)
+		A_block = np.roll(A_block, -self.A[0].shape[0], axis=1)  # Shift downwards
+		A_block[:self.A[0].shape[0],:] = 0  # Clear rolled over at the top
+		left = Id - A_block
+		right = linalg.block_diag(*self.B)
+		assert(left.shape[0] == right.shape[0]), (left.shape, right.shape)
+		G_eq = np.hstack([left, -right])
+
+		E_eq = np.hstack([self.A[0].T] + [np.zeros(self.A[0].T.shape)] * (self.N-1)).T
+
+		C_eq = np.hstack(self.C)
 
 		if self.printLevel >= 2:
 			print("G_eq: ")
@@ -129,7 +150,7 @@ class FTOCP(object):
 		self.E_eq = E_eq
 
 	def osqp_solve_qp(self, P, q, G= None, h=None, A=None, b=None, initvals=None):
-		""" 
+		"""
 		Solve a Quadratic Program defined as:
 		minimize
 			(1/2) * x.T * P * x + q.T * x
@@ -137,8 +158,8 @@ class FTOCP(object):
 			G * x <= h
 			A * x == b
 		using OSQP <https://github.com/oxfordcontrol/osqp>.
-		"""  
-		
+		"""
+
 		qp_A = vstack([G, A]).tocsc()
 		l = -inf * ones(len(h))
 		qp_l = hstack([l, b])
@@ -157,4 +178,3 @@ class FTOCP(object):
 			print("The FTOCP is not feasible at time t = ", self.time)
 
 		self.Solution = res.x
-

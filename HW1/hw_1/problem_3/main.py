@@ -10,7 +10,7 @@ from numpy import linalg as la
 # Initialize system parameters
 A = np.array([[1, 1],
 	          [0, 1]]);
-B = np.array([[0], 
+B = np.array([[0],
 			  [1]]);
 C = []
 x0    = np.array([-15.0,15.0])   # initial condition
@@ -22,6 +22,8 @@ Q      = np.eye(2)
 R      = 10*np.eye(1)
 Qf     = np.eye(2)
 
+n = 2
+d = 1
 # State constraint set X = \{ x : F_x x \leq b_x \}
 Fx = np.vstack((np.eye(n), -np.eye(n)))
 bx = np.array([15,15]*(2))
@@ -36,11 +38,11 @@ bf = bx
 # Solve FTOCP and plot the solution
 A = []
 B = []
-C = [] 
+C = []
 for i in range(0, N):
 	A.append(np.array([[1, 0.5**i],
 	          	  [0, 1]]))
-	B.append(np.array([[0], 
+	B.append(np.array([[0],
 				  	   [1]]))
 
 	C.append(np.array([0, 0.1**i]))
