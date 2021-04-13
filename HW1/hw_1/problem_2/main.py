@@ -21,6 +21,8 @@ Q      = np.eye(2)
 R      = 10*np.eye(1)
 Qf     = np.eye(2)
 
+n = 2
+d = 1
 # State constraint set X = \{ x : F_x x \leq b_x \}
 Fx = np.vstack((np.eye(n), -np.eye(n)))
 bx = np.array([15,15]*(2))
@@ -36,13 +38,13 @@ bf = bx
 # Solve FTOCP and plot the solutiob
 ftocp = FTOCP(N, A, B, Q, R, Qf, Fx, bx, Fu, bu, Ff, bf, printLevel)
 
-# ftocp.solve(x0)
+ftocp.solve(x0)
 
-# plt.figure()
-# plt.plot(ftocp.xPred[:,0], ftocp.xPred[:,1], '-ob')
-# plt.title('Optimal Solution')
-# plt.xlabel('$x_1$')
-# plt.ylabel('$x_2$')
-# plt.xlim(-15,15)
-# plt.ylim(-15,15)
-# plt.show()
+plt.figure()
+plt.plot(ftocp.xPred[:,0], ftocp.xPred[:,1], '-ob')
+plt.title('Optimal Solution')
+plt.xlabel('$x_1$')
+plt.ylabel('$x_2$')
+plt.xlim(-15,15)
+plt.ylim(-15,15)
+plt.show()
