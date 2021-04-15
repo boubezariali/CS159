@@ -117,6 +117,9 @@ class FTOCP(object):
 		barQ = linalg.block_diag(*([self.Q] * (self.N-1) + [self.Qf]))
 		barR = linalg.block_diag(*([self.R] * self.N))
 
+		print("barQ \n", barQ)
+		print("barR \n", barR)
+
 		H = linalg.block_diag(barQ, barR)
 		q = np.zeros(H.shape[0]) 
 

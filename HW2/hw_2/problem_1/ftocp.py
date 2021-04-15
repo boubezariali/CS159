@@ -82,8 +82,14 @@ class FTOCP(object):
 	def uGuessUpdate(self):
 		uPred = self.uPred
 		for i in range(0, self.N-1):
-			self.uGuess[i] = ...
-		self.uGuess[-1] = ...
+			self.uGuess[i] = self.uPred[i]
+		self.uGuess[-1] = self.uPred[-2]
+
+		# uPred = self.uPred
+		# print(uPred.shape)
+		# for i in range(0, self.N-1):
+		# 	self.uGuess[i] = np.array([0, 0])
+		# self.uGuess[-1] = np.array([0, 0])
 
 	def unpackSolution(self, x0):
 		# Extract predicted state and predicted input trajectories
@@ -139,8 +145,9 @@ class FTOCP(object):
 		
 		goal = self.goal
 		# Hint: First construct a vector z_{goal} using the goal state and then leverage the matrix H
-		...
-		q    = ...
+		z_goal = -2 * np.concatenate([self.goal.reshape(-1)] * self.N ) 
+		z_goal = np.concatenate([z_goal,np.zeros(self.d * self.N)])
+		q = z_goal @ H
 
 		if self.printLevel >= 2:
 			print("H: ")
@@ -163,8 +170,8 @@ class FTOCP(object):
 			if k == 0:
 				E_eq[0:self.n, :] = A
 			else:
-				Gx[...:..., ...:...] = -A
-			Gu[...:..., ...:...] = -B
+				Gx[k*self.n:(k+1)*self.n,(k-1)*self.n:k*self.n] = -A
+			Gu[k*self.n:(k+1)*self.n, k*self.d:(k+1)*self.d] = -B
 			self.C = np.append(self.C, C)
 
 		G_eq = np.hstack((Gx, Gu))
